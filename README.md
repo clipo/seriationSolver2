@@ -10,6 +10,7 @@ A Python implementation of frequency seriation analysis using parallel dynamic p
   - Individual battleship plots for each sequence
   - Heatmap visualizations
   - Combined summary visualization of all valid sequences
+- Network analysis of seriation relationships based on shared assemblages
 - Progress monitoring and detailed reporting
 
 ## Installation
@@ -17,7 +18,7 @@ A Python implementation of frequency seriation analysis using parallel dynamic p
 ### Requirements
 
 ```bash
-pip install numpy pandas scipy scikit-learn matplotlib seaborn tqdm
+pip install numpy pandas scipy scikit-learn matplotlib seaborn tqdm networkx
 ```
 
 ### Dependencies
@@ -30,11 +31,14 @@ pip install numpy pandas scipy scikit-learn matplotlib seaborn tqdm
 - matplotlib
 - seaborn
 - tqdm
+- networkx
 
 ## Usage
 
-### Basic Usage
 
+### Step 1: Run the Seriation Solver
+
+To begin, you need to run SeriationSolverDynamic.py to generate the seriation results. This will produce the seriation_results.txt file containing the sequences and assemblages identified by the solver.
 ```python
 from seriation_solver import DPSeriationSolver
 
@@ -47,8 +51,20 @@ solver = DPSeriationSolver(min_group_size=3)
 # Find and visualize seriation sequences
 results = solver.fit(data)
 ```
+### Step 2: Generate the Seriation Network
 
-### Input Data Format
+After generating the results from SeriationSolverDynamic.py, you can run network.py to create a network visualization showing relationships between sequences based on shared assemblages.
+```python
+
+## Input Dafrom network import create_seriation_network
+
+# Path to seriation results
+results_file = "seriation_results/seriation_results.txt"
+
+# Create the network
+G = create_seriation_network(results_file)
+```
+### Input Datta Format
 
 The input data should be a tab-separated file with:
 - First column: Assemblage IDs (used as index)
@@ -70,6 +86,7 @@ The solver creates a directory (default: 'seriation_results') containing:
 - Heatmap visualizations (heatmap_0.png, heatmap_1.png, etc.)
 - Combined visualization of all sequences (all_sequences.png)
 - Text summary of results (seriation_results.txt)
+- Network visualization of seriation groups based on shared assemblages (seriation_network.png)
 
 ## Parameters
 
@@ -84,6 +101,15 @@ The solver creates a directory (default: 'seriation_results') containing:
 - `assemblages`: Pandas DataFrame containing the assemblage data
 - `output_dir`: Directory for saving results (default: 'seriation_results')
 - `max_cores`: Maximum number of CPU cores to use (default: all available)
+
+## Network Analysis
+
+### create_seriation_network
+
+The create_seriation_network function in network.py visualizes the relationships between sequences based on shared assemblages. Nodes represent sequences, and edges between nodes indicate shared assemblages, with edge width proportional to the number of shared assemblages.
+- `Parameters:
+  - `results_file: Path to the seriation_results.txt file produced by the seriation solver.
+  - `output_dir: Directory to save the network visualization (default: ‘seriation_results’).
 
 ## Output Details
 
@@ -101,6 +127,13 @@ The solver creates a directory (default: 'seriation_results') containing:
 - All valid sequences in one figure
 - Consistent scaling across sequences
 - Clear labeling and sequence numbering
+
+## Seriation Network
+- Network visualization of seriation relationships between sequences.
+- Edges connect sequences with shared assemblages.
+- Nodes are labeled with sequence numbers.
+- Edge width indicates the number of shared assemblages between sequences.
+- Visualization is saved as seriation_network.png in the specified output directory.
 
 ## Example
 
@@ -126,3 +159,4 @@ results = solver.fit(
 - Statistical evaluation ensures robust sequence identification
 - Visualizations are saved in high resolution (300 DPI)
 - Progress information and error messages are displayed during processing
+- The network visualization requires network.py to be run after generating results from SeriationSolverDynamic.py
