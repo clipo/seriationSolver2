@@ -2,7 +2,9 @@
 
 A Python implementation of frequency seriation analysis using parallel dynamic programming. This tool finds valid seriation sequences in archaeological assemblage data by analyzing frequency patterns and ensuring monotonic distributions ("battleship curves").
 
-## Features
+![seriation network](seriation_results/seriation_network.png "Seriation Network")
+
+# Features
 
 - Parallel processing for efficient sequence discovery
 - Statistical evaluation of monotonicity using confidence intervals
