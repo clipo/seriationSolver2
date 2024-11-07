@@ -16,6 +16,7 @@ A comprehensive Python toolkit for archaeological seriation analysis, supporting
   - Combined summary visualization of all valid sequences
 - Network analysis of seriation relationships based on shared assemblages
 - Progress monitoring and detailed reporting
+- Support for multiple input file formats (CSV, TSV, Excel)
 
 ### Occurrence Seriation (occurrenceSeriation.py)
 - Analysis of presence/absence patterns
@@ -29,13 +30,14 @@ A comprehensive Python toolkit for archaeological seriation analysis, supporting
 - Analysis of shared assemblages between sequences
 - Network statistics and metrics
 - High-resolution output graphics
+- Automatic integration with seriation analysis
 
 ## Installation
 
 ### Requirements
 
 ```bash
-pip install numpy pandas scipy scikit-learn matplotlib seaborn tqdm networkx
+pip install numpy pandas scipy scikit-learn matplotlib seaborn tqdm networkx openpyxl
 ```
 
 ### Dependencies
@@ -49,23 +51,40 @@ pip install numpy pandas scipy scikit-learn matplotlib seaborn tqdm networkx
 - seaborn
 - tqdm
 - networkx
+- openpyxl (for Excel file support)
 
 ## Usage
 
-### Frequency Seriation
+### Frequency Seriation with Network Analysis
 
-```python
-from seriation_solver import DPSeriationSolver
+```bash
+# Basic usage with default settings
+python SeriationSolverDynamic.py
 
-# Read your data
-data = pd.read_csv('your_data.txt', sep='\t', index_col=0)
+# Specify custom input file
+python SeriationSolverDynamic.py --file your_data.csv
 
-# Initialize solver
-solver = DPSeriationSolver(min_group_size=3)
+# Full options
+python SeriationSolverDynamic.py --file your_data.xlsx \
+                                --min_group 4 \
+                                --confidence 0.99 \
+                                --bootstrap 2000 \
+                                --output custom_results \
+                                --cores 4
 
-# Find and visualize seriation sequences
-results = solver.fit(data)
+# Run without network analysis
+python SeriationSolverDynamic.py --file your_data.csv --no-network
 ```
+
+### Command Line Arguments
+
+- `--file`: Input data file path (CSV, TSV, or Excel)
+- `--min_group`: Minimum group size (default: 3)
+- `--confidence`: Confidence level (default: 0.95)
+- `--bootstrap`: Number of bootstrap iterations (default: 1000)
+- `--output`: Output directory (default: 'seriation_results')
+- `--cores`: Number of CPU cores to use (default: all available)
+- `--no-network`: Skip network analysis (default: False)
 
 ### Occurrence Seriation
 
@@ -77,22 +96,10 @@ python occurrenceSeriation.py
 python occurrenceSeriation.py --file path/to/your/data.csv
 ```
 
-### Network Analysis
-
-```python
-from network import create_seriation_network
-
-# Path to seriation results
-results_file = "seriation_results/seriation_results.txt"
-
-# Create the network
-G = create_seriation_network(results_file)
-```
-
 ## Input Data Formats
 
 ### Frequency Seriation Data
-Tab-separated file with:
+Tab-separated, CSV, or Excel file with:
 - First column: Assemblage IDs (used as index)
 - Remaining columns: Frequencies for each type
 - Header row with type names
@@ -135,73 +142,61 @@ The analysis creates a directory (default: 'seriation_results') containing:
 - Combined solution visualization (all_valid_solutions.png)
 - Solution network graph (solution_network_graph.png)
 
-## Parameters
+## Analysis Details
 
-### DPSeriationSolver
-- `min_group_size`: Minimum number of assemblages in a valid sequence (default: 3)
-- `confidence_level`: Confidence level for statistical testing (default: 0.95)
-- `n_bootstrap`: Number of bootstrap iterations (default: 1000)
+### Frequency Seriation
+- Uses parallel dynamic programming to find valid sequences
+- Evaluates monotonicity with statistical confidence intervals
+- Automatically generates battleship curve visualizations
+- Creates network analysis of relationships between sequences
 
-### Occurrence Seriation
-- Command line arguments:
-  - `--file`: Path to input data file (optional, uses test data if not specified)
-
-## Network Analysis Details
-
-Both frequency and occurrence seriation results can be analyzed using network visualization:
-
-### Frequency Seriation Network
-- Nodes represent seriation sequences
-- Edges indicate shared assemblages between sequences
-- Edge width proportional to number of shared assemblages
-- Node size indicates number of assemblages in sequence
-
-### Occurrence Seriation Network
-- Nodes represent valid solutions
-- Edges indicate shared artifacts between solutions
-- Edge labels show specific shared artifacts
-- Network layout optimized for clarity
-
-## Example Usage
-
-### Complete Frequency Seriation Analysis
-```python
-# Example with custom parameters
-solver = DPSeriationSolver(
-    min_group_size=4,
-    confidence_level=0.99,
-    n_bootstrap=2000
-)
-
-# Run analysis
-results = solver.fit(
-    assemblages=data,
-    output_dir='my_results',
-    max_cores=4
-)
-```
-
-### Occurrence Seriation with Custom Data
-```bash
-python occurrenceSeriation.py --file my_data.csv
-```
-
-## Notes
-
-- Both methods use parallel processing for efficient computation
-- Statistical evaluation ensures robust sequence identification
-- All visualizations are saved in high resolution (300 DPI)
-- Detailed progress information and error messages are displayed
-- The package includes sample data for testing and demonstration
-- Network analysis can be performed on results from either method
+### Network Analysis
+- Automatically runs after seriation analysis
+- Shows relationships between sequences based on shared assemblages
+- Edge thickness indicates number of shared assemblages
+- Node size reflects sequence length
+- Labels show specific shared assemblages
 
 ## Directory Structure
 ```
 .
-├── SeriationSolverDynamic.py  # Frequency seriation implementation
+├── SeriationSolverDynamic.py  # Main frequency seriation implementation
 ├── occurrenceSeriation.py     # Occurrence seriation implementation
 ├── network.py                 # Network analysis tools
 ├── testdata/                  # Sample data directory
 │   └── ahu.csv               # Test data for occurrence seriation
 └── README.md                 # This documentation
+```
+
+## Notes
+
+- Both seriation methods use parallel processing for efficient computation
+- Statistical evaluation ensures robust sequence identification
+- All visualizations are saved in high resolution (300 DPI)
+- Network analysis runs automatically unless disabled
+- Progress information and error messages are displayed
+- The package includes sample data for testing and demonstration
+
+## Common Issues and Solutions
+
+1. File Loading:
+   - Ensure input files are properly formatted
+   - Check file permissions
+   - Verify file exists in specified location
+
+2. Memory Usage:
+   - For large datasets, increase available memory
+   - Reduce number of parallel cores if needed
+
+3. Network Analysis:
+   - Ensure network.py is in the same directory
+   - Check if output directory is writable
+   - Verify seriation_results.txt was created
+
+## References
+
+Key references for methodology:
+- Dunnell, R. C. (1970). Seriation Method and Its Evaluation. American Antiquity, 35(3), 305-319.
+- Ford, J. A. (1962). A Quantitative Method for Deriving Cultural Chronology. Technical Manual No. 1, Pan American Union.
+- O'Brien, M. J., & Lyman, R. L. (1999). Seriation, Stratigraphy, and Index Fossils: The Backbone of Archaeological Dating.
 ```
