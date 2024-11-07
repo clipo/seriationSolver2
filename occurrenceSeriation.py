@@ -1,3 +1,4 @@
+import argparse
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,11 +6,31 @@ import os
 import networkx as nx
 from tqdm import tqdm
 
-# Load data
-file_path = 'ahu.csv'
-artifact_data = pd.read_csv(file_path)
+
+def load_data(file_path=None):
+    """
+    Load artifact data from the provided file path or use default test data.
+    """
+    default_file_path = 'testdata/ahu.csv'
+    if file_path is None:
+        file_path = default_file_path
+        print(f"No file specified. Using default file: {file_path}")
+    else:
+        print(f"Loading data from specified file: {file_path}")
+
+    return pd.read_csv(file_path)
 
 
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Run seriation analysis on artifact data.")
+parser.add_argument("--file", type=str, help="Specify the path to the data file.")
+args = parser.parse_args()
+
+# Load data (use default if no filename provided)
+artifact_data = load_data(args.file)
+
+
+# (rest of the code here remains the same)
 # Function to group artifacts by identical patterns and label them with artifact names
 def group_and_label_patterns(df):
     pattern_groups = df.groupby(list(df.columns[1:])).apply(lambda x: ', '.join(x['Ahu'])).reset_index()
@@ -22,6 +43,8 @@ def group_and_label_patterns(df):
 class_names = artifact_data.columns[1:]
 pattern_groups = group_and_label_patterns(artifact_data)
 
+
+# (remaining functions and main script continue as before)
 
 def strict_continuity_check(sorted_patterns):
     return all(np.all(np.diff(np.where(col == 1)[0]) == 1) for col in sorted_patterns.T)
