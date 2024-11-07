@@ -2,8 +2,8 @@
 
 A comprehensive Python toolkit for archaeological seriation analysis, supporting both frequency and occurrence seriation methods. This package includes tools for parallel dynamic programming frequency seriation, occurrence seriation, and network analysis of seriation relationships.
 
-![seriations ](seriation_results/all_sequences.png "Seriations")
-![seriation network](seriation_results/seriation_network.png "Seriation Solution Network")
+![seriation network](seriation_results/seriation_network.png "Seriation Network")
+![sequence network](seriation_results/sequence_network.png "Sequence Network")
 
 ## Features
 
@@ -14,7 +14,9 @@ A comprehensive Python toolkit for archaeological seriation analysis, supporting
   - Individual battleship plots for each sequence
   - Heatmap visualizations
   - Combined summary visualization of all valid sequences
-- Network analysis of seriation relationships based on shared assemblages
+- Network analysis of seriation relationships with two visualization types:
+  - Shared assemblage networks
+  - Sequential relationship networks
 - Progress monitoring and detailed reporting
 - Support for multiple input file formats (CSV, TSV, Excel)
 
@@ -26,11 +28,20 @@ A comprehensive Python toolkit for archaeological seriation analysis, supporting
 - Command-line interface for easy data input
 
 ### Network Analysis (network.py)
-- Visualization of relationships between seriation sequences
-- Analysis of shared assemblages between sequences
-- Network statistics and metrics
-- High-resolution output graphics
-- Automatic integration with seriation analysis
+Two complementary network visualizations:
+1. Shared Assemblage Network:
+   - Nodes represent seriation sequences
+   - Edges show shared assemblages between sequences
+   - Edge thickness indicates number of shared assemblages
+   - Node size reflects sequence length
+
+2. Sequential Relationship Network:
+   - Nodes represent individual assemblages
+   - Edges show sequential relationships from all sequences
+   - Edge thickness shows how many sequences contain that relationship
+   - Spring layout for optimal visualization of relationships
+   - Edge labels indicate source sequences
+   - Arrows show direction of relationships
 
 ## Installation
 
@@ -58,7 +69,7 @@ pip install numpy pandas scipy scikit-learn matplotlib seaborn tqdm networkx ope
 ### Frequency Seriation with Network Analysis
 
 ```bash
-# Basic usage with default settings
+# Basic usage with default settings (includes both network visualizations)
 python SeriationSolverDynamic.py
 
 # Specify custom input file
@@ -86,44 +97,11 @@ python SeriationSolverDynamic.py --file your_data.csv --no-network
 - `--cores`: Number of CPU cores to use (default: all available)
 - `--no-network`: Skip network analysis (default: False)
 
-### Occurrence Seriation
+### Network Analysis Only
 
 ```bash
-# Run with default test data
-python occurrenceSeriation.py
-
-# Run with custom data file
-python occurrenceSeriation.py --file path/to/your/data.csv
-```
-
-## Input Data Formats
-
-### Frequency Seriation Data
-Tab-separated, CSV, or Excel file with:
-- First column: Assemblage IDs (used as index)
-- Remaining columns: Frequencies for each type
-- Header row with type names
-
-Example:
-```
-Assemblage   Type1   Type2   Type3
-Sample1      10      5       2
-Sample2      8       7       3
-Sample3      4       9       5
-```
-
-### Occurrence Seriation Data
-CSV file with:
-- First column: Artifact identifiers ('Ahu' in test data)
-- Remaining columns: Presence (1) or absence (0) for each type
-- Header row with type names
-
-Example data available in the testdata directory:
-```
-Ahu,Type1,Type2,Type3
-Artifact1,1,0,1
-Artifact2,1,1,0
-Artifact3,0,1,1
+# Run network analysis on existing results
+python network.py
 ```
 
 ## Output Files
@@ -135,68 +113,75 @@ The analysis creates a directory (default: 'seriation_results') containing:
 - Heatmap visualizations (heatmap_0.png, heatmap_1.png, etc.)
 - Combined visualization of all sequences (all_sequences.png)
 - Text summary of results (seriation_results.txt)
-- Network visualization (seriation_network.png)
+- Shared assemblage network visualization (seriation_network.png)
+- Sequential relationship network visualization (sequence_network.png)
 
-### Occurrence Seriation Output
-- Individual solution visualizations (valid_solution_1.png, etc.)
-- Combined solution visualization (all_valid_solutions.png)
-- Solution network graph (solution_network_graph.png)
-
-## Analysis Details
-
-### Frequency Seriation
-- Uses parallel dynamic programming to find valid sequences
-- Evaluates monotonicity with statistical confidence intervals
-- Automatically generates battleship curve visualizations
-- Creates network analysis of relationships between sequences
-
-### Network Analysis
-- Automatically runs after seriation analysis
-- Shows relationships between sequences based on shared assemblages
-- Edge thickness indicates number of shared assemblages
-- Node size reflects sequence length
-- Labels show specific shared assemblages
+### Network Visualizations
+1. seriation_network.png:
+   - Shows relationships between sequences
+   - Edge width based on number of shared assemblages
+   - Node size based on sequence length
+   
+2. sequence_network.png:
+   - Shows all sequential relationships from all sequences
+   - Each assemblage appears once as a node
+   - Edge width shows frequency of relationship across sequences
+   - Arrows indicate sequence direction
+   - Labels show which sequences contain each relationship
 
 ## Directory Structure
 ```
 .
 ├── SeriationSolverDynamic.py  # Main frequency seriation implementation
 ├── occurrenceSeriation.py     # Occurrence seriation implementation
-├── network.py                 # Network analysis tools
+├── network.py                 # Network analysis and visualization tools
 ├── testdata/                  # Sample data directory
 │   └── ahu.csv               # Test data for occurrence seriation
 └── README.md                 # This documentation
 ```
 
+## Network Analysis Details
+
+### Shared Assemblage Network
+- Shows how sequences are related through common assemblages
+- Useful for identifying overlapping sequence groups
+- Helps validate sequence relationships
+
+### Sequential Relationship Network
+- Combines all sequence information into a single graph
+- Shows how assemblages are connected across all sequences
+- Edge weights show strength of sequential relationships
+- Spring layout optimizes visualization of relationships
+- Parameters tuned for clarity:
+  - Node spacing (`k=1.5`)
+  - Layout iterations (500)
+  - Edge weight influence
+  - Arrow and label positioning
+
 ## Notes
 
 - Both seriation methods use parallel processing for efficient computation
 - Statistical evaluation ensures robust sequence identification
-- All visualizations are saved in high resolution (300 DPI)
 - Network analysis runs automatically unless disabled
-- Progress information and error messages are displayed
-- The package includes sample data for testing and demonstration
+- All visualizations are saved in high resolution (300 DPI)
+- The package includes sample data for testing
+- Spring layout provides optimal visualization of relationships
 
 ## Common Issues and Solutions
 
-1. File Loading:
-   - Ensure input files are properly formatted
-   - Check file permissions
-   - Verify file exists in specified location
+1. Network Visualization:
+   - If graph is too dense, adjust spring layout parameters
+   - Label overlapping can be adjusted through font size
+   - Edge weights can be scaled for better visibility
 
-2. Memory Usage:
-   - For large datasets, increase available memory
-   - Reduce number of parallel cores if needed
-
-3. Network Analysis:
-   - Ensure network.py is in the same directory
-   - Check if output directory is writable
-   - Verify seriation_results.txt was created
+2. File Management:
+   - Check output directory permissions
+   - Verify result files exist before network analysis
+   - Ensure consistent file naming
 
 ## References
 
 Key references for methodology:
 - Dunnell, R. C. (1970). Seriation Method and Its Evaluation. American Antiquity, 35(3), 305-319.
-- Ford, J. A. (1962). A Quantitative Method for Deriving Cultural Chronology. Technical Manual No. 1, Pan American Union.
 - O'Brien, M. J., & Lyman, R. L. (1999). Seriation, Stratigraphy, and Index Fossils: The Backbone of Archaeological Dating.
-```
+- Newman, M. E. J. (2010). Networks: An Introduction. Oxford University Press (for network analysis methods).
