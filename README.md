@@ -2,8 +2,8 @@
 
 A comprehensive Python toolkit for archaeological seriation analysis, supporting both frequency and occurrence seriation methods. This package includes tools for parallel dynamic programming frequency seriation, occurrence seriation, and network analysis of seriation relationships.
 
+![freqency seriation](seriation_results/all_sequences.png "Frequency Seriation")
 ![seriation network](seriation_results/seriation_network.png "Seriation Network")
-![sequence network](seriation_results/sequence_network.png "Sequence Network")
 
 ## Features
 
