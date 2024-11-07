@@ -182,283 +182,6 @@ class DPSeriationSolver:
         print(f"Found {len(valid_sequences)} valid sequences")
         return valid_sequences
 
-        def plot_battleship(self,
-                            assemblages: pd.DataFrame,
-                            sequence_indices: List[int],
-                            title: str = "Seriation Sequence",
-                            save_path: str = None):
-            """Create traditional battleship plot with centered bars varying in width"""
-            sequence_data = assemblages.iloc[sequence_indices]
-            totals = sequence_data.sum(axis=1)
-            proportions = sequence_data.div(totals, axis=0) * 100  # Convert to percentages
-
-            # Create figure
-            n_types = len(assemblages.columns)
-            fig_width = max(12, n_types * 2)  # Adjust width based on number of types
-            fig_height = max(8, len(sequence_indices) * 0.4)  # Adjust height based on assemblages
-            fig = plt.figure(figsize=(fig_width, fig_height))
-
-            # Get max proportion for scaling
-            max_prop = proportions.max().max()
-            bar_height = 0.6  # Fixed height for bars
-            type_positions = np.arange(n_types) * 3  # Triple spacing between types
-
-            # Create plot
-            ax = plt.gca()
-
-            # Plot bars
-            for i, (_, row) in enumerate(sequence_data.iterrows()):
-                row_props = proportions.iloc[i]
-
-                # Plot bars for each type
-                for j, (type_name, prop) in enumerate(row_props.items()):
-                    if prop > 0:  # Only plot non-zero values
-                        # Width varies with proportion, height is fixed
-                        width = prop / max_prop  # Scale width by proportion
-                        x_pos = type_positions[j]
-                        ax.bar(x=x_pos,
-                               height=bar_height,
-                               width=width,
-                               bottom=i - bar_height / 2,
-                               color='black',
-                               alpha=0.7)
-
-            # Customize plot
-            ax.set_ylim(-0.5, len(sequence_indices) - 0.5)
-            ax.set_xlim(min(type_positions) - 1.5, max(type_positions) + 1.5)
-
-            # Add labels
-            ax.set_yticks(range(len(sequence_indices)))
-            ax.set_yticklabels(sequence_data.index)
-
-            # Add type names at bottom
-            ax.set_xticks(type_positions)
-            ax.set_xticklabels(assemblages.columns, rotation=45, ha='right')
-
-            # Remove unnecessary spines
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-
-            # Add title
-            plt.title(title)
-            plt.tight_layout()
-
-            # Save or show
-            if save_path:
-                plt.savefig(save_path, dpi=300, bbox_inches='tight')
-                plt.close()
-            else:
-                plt.show()
-
-        def plot_heatmap(self,
-                         assemblages: pd.DataFrame,
-                         sequence_indices: List[int],
-                         title: str = "Heatmap Sequence",
-                         save_path: str = None):
-            """Create heatmap visualization"""
-            plt.figure(figsize=(12, 8))
-
-            sequence_data = assemblages.iloc[sequence_indices]
-            totals = sequence_data.sum(axis=1)
-            proportions = sequence_data.div(totals, axis=0)
-
-            sns.heatmap(proportions, cmap='YlOrRd', annot=True, fmt='.3f')
-            plt.title(title)
-            plt.ylabel('Assemblages')
-            plt.xlabel('Types')
-
-            if save_path:
-                plt.savefig(save_path, dpi=300, bbox_inches='tight')
-                plt.close()
-            else:
-                plt.show()
-
-        def fit(self,
-                assemblages: pd.DataFrame,
-                output_dir: str = 'seriation_results',
-                max_cores: int = None) -> Dict[str, List[str]]:
-            """
-            Main method to find seriation solutions using parallel dynamic programming
-            """
-            # Create output directory
-            os.makedirs(output_dir, exist_ok=True)
-
-            print("Starting parallel dynamic programming seriation analysis...")
-            print(f"Data: {len(assemblages)} assemblages, {len(assemblages.columns)} types")
-
-            # Find all valid sequences
-            valid_sequences = self.find_all_valid_sequences(assemblages.values, max_cores)
-
-            # Sort sequences by length (longest first)
-            sorted_sequences = sorted(valid_sequences,
-                                      key=len,
-                                      reverse=True)
-
-            # Prepare results
-            results = {}
-            sequence_list = []
-
-            for i, sequence in enumerate(sorted_sequences):
-                sequence_names = assemblages.index[list(sequence)].tolist()
-                results[f'Sequence_{i}'] = sequence_names
-                sequence_list.append(list(sequence))
-
-                # Create visualizations
-                # Save battleship plot
-                battleship_path = os.path.join(output_dir, f'battleship_{i}.png')
-                self.plot_battleship(
-                    assemblages,
-                    list(sequence),
-                    f'Seriation Sequence {i}',
-                    save_path=battleship_path
-                )
-                print(f"Saved battleship plot to: {battleship_path}")
-
-                # Save heatmap separately
-                heatmap_path = os.path.join(output_dir, f'heatmap_{i}.png')
-                self.plot_heatmap(
-                    assemblages,
-                    list(sequence),
-                    f'Heatmap Sequence {i}',
-                    save_path=heatmap_path
-                )
-                print(f"Saved heatmap to: {heatmap_path}")
-
-            # Create combined visualization
-            print("\nCreating combined visualization...")
-            combined_path = os.path.join(output_dir, 'all_sequences.png')
-
-            try:
-                # Create figure for combined plot
-                n_sequences = len(sequence_list)
-                n_types = len(assemblages.columns)
-
-                if n_sequences > 0:
-                    # Make figure size proportional to number of sequences
-                    fig = plt.figure(figsize=(15, 4 * n_sequences))
-                    plt.suptitle("All Valid Seriation Sequences", y=1.02, fontsize=14)
-
-                    # Create subplots for each sequence
-                    for idx, sequence in enumerate(sequence_list):
-                        print(f"Adding sequence {idx + 1} to combined plot...")
-
-                        # Create subplot
-                        ax = plt.subplot(n_sequences, 1, idx + 1)
-
-                        sequence_data = assemblages.iloc[sequence]
-                        totals = sequence_data.sum(axis=1)
-                        proportions = sequence_data.div(totals, axis=0) * 100
-
-                        # Plot bars
-                        max_prop = proportions.max().max()
-                        bar_height = 0.6
-                        type_positions = np.arange(n_types) * 3
-
-                        for i, (_, row) in enumerate(sequence_data.iterrows()):
-                            row_props = proportions.iloc[i]
-                            for j, (type_name, prop) in enumerate(row_props.items()):
-                                if prop > 0:
-                                    width = 2 * (prop / max_prop)
-                                    x_pos = type_positions[j]
-                                    ax.bar(x=x_pos,
-                                           height=bar_height,
-                                           width=width,
-                                           bottom=i - bar_height / 2,
-                                           color='black',
-                                           alpha=0.7)
-
-                        # Customize subplot
-                        ax.set_ylim(-0.5, len(sequence) - 0.5)
-                        ax.set_xlim(min(type_positions) - 1.5, max(type_positions) + 1.5)
-
-                        # Add labels
-                        ax.set_yticks(range(len(sequence)))
-                        ax.set_yticklabels(sequence_data.index)
-
-                        ax.set_xticks(type_positions)
-                        if idx == len(sequence_list) - 1:
-                            ax.set_xticklabels(assemblages.columns, rotation=45, ha='right')
-                        else:
-                            ax.set_xticklabels([])
-
-                        ax.spines['top'].set_visible(False)
-                        ax.spines['right'].set_visible(False)
-                        ax.set_title(f'Sequence {idx + 1}', pad=10)
-
-                    plt.tight_layout()
-                    plt.savefig(combined_path, dpi=300, bbox_inches='tight')
-                    plt.close()
-
-                    print(f"Saved combined plot to: {combined_path}")
-
-                    # Verify file exists
-                    if os.path.exists(combined_path):
-                        print(f"Verified: Combined plot file exists at {combined_path}")
-                        print(f"File size: {os.path.getsize(combined_path)} bytes")
-                    else:
-                        print("Warning: Combined plot file was not created successfully")
-
-            except Exception as e:
-                print(f"Error creating combined visualization: {str(e)}")
-                import traceback
-                traceback.print_exc()
-
-            # Save results to text file
-            results_path = os.path.join(output_dir, 'seriation_results.txt')
-            with open(results_path, 'w') as f:
-                f.write("Seriation Analysis Results\n")
-                f.write("=========================\n\n")
-                for seq_name, assemblage_list in results.items():
-                    f.write(f"\n{seq_name}:\n")
-                    f.write("Assemblages:\n")
-                    for assemblage in assemblage_list:
-                        f.write(f"  {assemblage}\n")
-                    f.write(f"Length: {len(assemblage_list)}\n")
-
-            print(f"\nResults saved to directory: {output_dir}")
-            print(f"Found {len(results)} valid sequences")
-            return results
-
-    if __name__ == "__main__":
-        print("Starting seriation analysis...")
-
-        try:
-            # Set up argument parsing
-            parser = argparse.ArgumentParser(description='Run frequency seriation analysis.')
-            parser.add_argument('--file', type=str, help='Path to input data file (CSV, TSV, or Excel)', default=None)
-            parser.add_argument('--min_group', type=int, help='Minimum group size (default: 3)', default=3)
-            parser.add_argument('--confidence', type=float, help='Confidence level (default: 0.95)', default=0.95)
-            parser.add_argument('--bootstrap', type=int, help='Number of bootstrap iterations (default: 1000)',
-                                default=1000)
-            parser.add_argument('--output', type=str, help='Output directory (default: seriation_results)',
-                                default='seriation_results')
-            parser.add_argument('--cores', type=int, help='Number of CPU cores to use (default: all)', default=None)
-
-            args = parser.parse_args()
-
-            # Load data
-            print("Loading data...")
-            data = load_data(args.file)
-
-            # Initialize solver with command line parameters
-            solver = DPSeriationSolver(
-                min_group_size=args.min_group,
-                confidence_level=args.confidence,
-                n_bootstrap=args.bootstrap
-            )
-
-            # Find and visualize seriation groups
-            results = solver.fit(
-                data,
-                output_dir=args.output,
-                max_cores=args.cores
-            )
-
-        except Exception as e:
-            print(f"An error occurred: {str(e)}")
-            import traceback
-            traceback.print_exc()
-
     def plot_battleship(self,
                         assemblages: pd.DataFrame,
                         sequence_indices: List[int],
@@ -550,6 +273,55 @@ class DPSeriationSolver:
         else:
             plt.show()
 
+    def is_subsequence(self, smaller: List[int], larger: List[int]) -> bool:
+        """Check if one sequence is contained within another"""
+        n, m = len(smaller), len(larger)
+        if n > m:
+            return False
+
+        # Check if smaller sequence appears as a contiguous subsequence in larger
+        for i in range(m - n + 1):
+            if larger[i:i + n] == list(smaller):
+                return True
+        return False
+
+    def filter_maximal_sequences(self, sequences: Set[Tuple[int]]) -> List[Tuple[int]]:
+        """
+        Filter sequences to keep only maximal ones.
+        Removes sequences that are subsequences of larger sequences.
+        """
+        # Convert to list and sort by length (descending)
+        sorted_sequences = sorted(sequences, key=len, reverse=True)
+
+        if not sorted_sequences:
+            return []
+
+        # Keep track of which sequences to retain
+        keep_sequences = [True] * len(sorted_sequences)
+
+        print("\nFiltering for maximal sequences...")
+
+        # Compare each sequence with larger ones
+        for i in range(len(sorted_sequences)):
+            if not keep_sequences[i]:
+                continue
+
+            current_seq = list(sorted_sequences[i])
+
+            # Compare with each larger sequence
+            for j in range(i):
+                if keep_sequences[j] and self.is_subsequence(current_seq, list(sorted_sequences[j])):
+                    keep_sequences[i] = False
+                    print(
+                        f"  Removing sequence of length {len(current_seq)} - contained within sequence of length {len(sorted_sequences[j])}")
+                    break
+
+        # Keep only non-subsequence sequences
+        maximal_sequences = [seq for i, seq in enumerate(sorted_sequences) if keep_sequences[i]]
+
+        print(f"\nReduced from {len(sorted_sequences)} to {len(maximal_sequences)} maximal sequences")
+        return maximal_sequences
+
     def fit(self,
             assemblages: pd.DataFrame,
             output_dir: str = 'seriation_results',
@@ -566,19 +338,20 @@ class DPSeriationSolver:
         # Find all valid sequences
         valid_sequences = self.find_all_valid_sequences(assemblages.values, max_cores)
 
-        # Sort sequences by length (longest first)
-        sorted_sequences = sorted(valid_sequences,
-                                  key=len,
-                                  reverse=True)
+        # Filter to keep only maximal sequences
+        maximal_sequences = self.filter_maximal_sequences(valid_sequences)
 
         # Prepare results
         results = {}
         sequence_list = []
 
-        for i, sequence in enumerate(sorted_sequences):
+        for i, sequence in enumerate(maximal_sequences):
             sequence_names = assemblages.index[list(sequence)].tolist()
             results[f'Sequence_{i}'] = sequence_names
             sequence_list.append(list(sequence))
+
+            print(f"\nSequence_{i} (length {len(sequence)}):")
+            print("  " + " -> ".join(sequence_names))
 
             # Create visualizations
             # Save battleship plot
