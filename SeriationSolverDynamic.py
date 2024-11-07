@@ -1,3 +1,14 @@
+# Description: Frequency seriation solver using parallel dynamic programming
+__version__ = "1.0.0"
+__author__ = "Carl P. Lipo, Mark E. Madsen"
+__copyright__ = "Copyright 2024"
+__license__ = "Apache 2.0"
+__email__ = "clipo@bighamton.edu"
+__status__ = "Development"
+__maintainer__ = "Carl P. Lipo"
+__credits__ = ["Mark E. Madsen", "Carl P. Lipo"]
+__all__ = ["DPSeriationSolver"]
+
 import numpy as np
 import pandas as pd
 from typing import List, Tuple, Dict, Set

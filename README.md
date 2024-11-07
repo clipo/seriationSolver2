@@ -1,6 +1,18 @@
-# Archaeological Seriation Analysis Tools
+# Archaeological Seriation Analysis Tools v1.0.0
 
-A comprehensive Python toolkit for archaeological seriation analysis, supporting both frequency and occurrence seriation methods. This package includes tools for parallel dynamic programming frequency seriation, occurrence seriation, and network analysis of seriation relationships.
+A comprehensive Python toolkit for archaeological seriation analysis, implementing frequency seriation with parallel dynamic programming, occurrence seriation, and network analysis of seriation relationships. Version 1.0.0 introduces maximal sequence filtering and dual network visualizations.
+
+## Version 1.0.0 Features
+
+- Parallel dynamic programming approach for frequency seriation
+- Maximal sequence filtering (eliminates subsequences contained in larger sequences)
+- Dual network visualization system:
+  - Shared assemblage networks
+  - Sequential relationship networks with spring layout
+- Support for multiple input formats (CSV, TSV, Excel)
+- Statistical evaluation of monotonicity
+- Comprehensive visualization suite
+- Parallel processing capabilities
 
 ![freqency seriation](seriation_results/all_sequences.png "Frequency Seriation")
 ![seriation network](seriation_results/seriation_network.png "Seriation Network")
